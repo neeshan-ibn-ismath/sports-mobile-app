@@ -153,13 +153,14 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     width: '48%',
-    height: 180,
+    height: 200,
     marginBottom: 50,
-    marginRight: '2%', 
+    marginRight: '2%',
   },
   teamCard: {
     backgroundColor: '#fff',
     borderRadius: 10,
+    height:235,
     padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   teamName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
