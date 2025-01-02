@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Feather } from '@expo/vector-icons'; 
 import axios from 'axios';
 import { useClicks } from '../context/clickContext';
 import { FloatingCounter } from './floatingCounter';
@@ -9,100 +8,127 @@ import {
   Text, 
   View, 
   TouchableOpacity, 
-  ScrollView,
-  Linking
+  ScrollView, 
+  Image, 
+  Modal, 
+  Pressable 
 } from 'react-native';
 
-// Import additional icons if necessary, for example, FontAwesome icons
-import { FontAwesome } from '@expo/vector-icons'; 
-
 const Sports = () => {
-    const [sportsData, setSportsData] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const { incrementCount } = useClicks();
-  
-    useEffect(() => {
-      fetchSportsData();
-    }, []);
-  
-    const fetchSportsData = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `https://www.thesportsdb.com/api/v1/json/3/all_leagues.php`
-        );
-        
-        // Assuming the response contains a list of leagues
-        setSportsData(response.data.leagues);
-      } catch (error) {
-        console.error('Error fetching sports data', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [nflTeams, setNflTeams] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const { incrementCount } = useClicks();
 
-    const getSportIcon = (sport) => {
-      switch(sport) {
-        case 'Soccer':
-          return <FontAwesome name="futbol-o" size={24} color="#666" />;
-        case 'Basketball':
-          return <Feather name="circle" size={24} color="#666" />;  // You can replace with any other icon
-        case 'Baseball':
-          return <FontAwesome name="baseball-ball" size={24} color="#666" />;
-        case 'Tennis':
-          return <FontAwesome name="tennis-ball" size={24} color="#666" />;
-        default:
-          return <Feather name="activity" size={24} color="#666" />;  // Default icon
-      }
-    };
-    
-  
-    return (
-      <View style={styles.pageContent}>
-        <Text style={styles.pageTitle}>Sports Leagues</Text>
-        
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading sports leagues...</Text>
-          </View>
-        ) : (
-          <ScrollView style={styles.sportContainer}>
-            <View style={styles.cardContainer}>
-              {sportsData.map((item, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => {
-                    incrementCount();
-                    // This can be linked to a page with more details about the league
-                    Linking.openURL(`https://www.thesportsdb.com/league/${item.idLeague}`);
-                  }}
-                  style={styles.cardWrapper}
-                >
-                  <View style={styles.sportCard}>
-                    <View style={styles.sportHeader}>
-                      {getSportIcon(item.strSport)} {/* Render the sport icon */}
-                      <Text style={styles.sportSource}>{item.strLeague}</Text>
-                    </View>
+  useEffect(() => {
+    fetchNflTeams();
+  }, []);
 
-                    <Text style={styles.sportTitle}>{item.strLeagueAlternate || 'No alternate name'}</Text>
-                    <Text style={styles.sportDescription}>
-                      {item.strSport || 'Sport type not available'}
-                    </Text>
-                    <View style={styles.readMoreButton}>
-                      {/* Only icon, no text */}
-                      <Feather name="arrow-right" size={16} color="#fff" />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        )}
-  
-        <FloatingCounter />
-      </View>
-    );
+  const fetchNflTeams = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        'https://nfl-api-data.p.rapidapi.com/nfl-team-listing/v1/data',
+        {
+          headers: {
+            'x-rapidapi-host': 'nfl-api-data.p.rapidapi.com',
+            'x-rapidapi-key': 'e5d7c12088msh67f20a907ad73a8p1a48bajsn55007b86ea7f',
+          },
+        }
+      );
+      setNflTeams(response.data.map((item) => item.team));
+    } catch (error) {
+      console.error('Error fetching NFL teams:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  return (
+    <View style={styles.pageContent}>
+      <Text style={styles.pageTitle}>NFL Teams</Text>
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading NFL teams...</Text>
+        </View>
+      ) : (
+        <ScrollView style={styles.teamContainer}>
+          <View style={styles.cardContainer}>
+            {nflTeams.map((team, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  incrementCount();
+                  setSelectedTeam(team); // Open modal with team details
+                }}
+                style={styles.cardWrapper}
+              >
+                <View style={styles.teamCard}>
+                  <Image
+                    source={{ uri: team.logos[0]?.href }}
+                    style={styles.teamLogo}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.teamName}>{team.displayName}</Text>
+                  <Text style={styles.teamNickname}>{team.nickname}</Text>
+                  <Text style={[styles.teamLocation, { color: `#${team.color}` }]}>
+                    {team.location}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      )}
+
+<Modal
+  visible={!!selectedTeam}
+  animationType="slide"
+  transparent={true}
+  onRequestClose={() => setSelectedTeam(null)} 
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <Pressable
+        style={styles.closeButton}
+        onPress={() => setSelectedTeam(null)}
+      >
+        <Text style={styles.closeButtonText}>X</Text>
+      </Pressable>
+      {selectedTeam && (
+        <>
+          <Image
+            source={{ uri: selectedTeam.logos[0]?.href }}
+            style={styles.modalTeamLogo}
+            resizeMode="contain"
+          />
+          <Text style={styles.modalTeamName}>{selectedTeam.displayName}</Text>
+          <Text style={styles.modalTeamNickname}>{selectedTeam.nickname}</Text>
+          <Text style={styles.modalTeamLocation}>
+            Location: {selectedTeam.location}
+          </Text>
+          <Text style={styles.modalTeamColor}>
+            Team Color: #{selectedTeam.color}
+          </Text>
+
+          <View
+            style={[
+              styles.colorPreview,
+              { backgroundColor: `#${selectedTeam.color}` },
+            ]}
+          />
+        </>
+      )}
+    </View>
+  </View>
+</Modal>
+
+
+      <FloatingCounter />
+    </View>
+  );
+};
 
 export default Sports;
 
@@ -117,65 +143,50 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 20,
   },
-  sportContainer: {
-    marginBottom: 20,
+  teamContainer: {
+    marginBottom: 30,
   },
   cardContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap', // Allow cards to wrap
-    justifyContent: 'space-between', // Space cards evenly
+    flexWrap: 'wrap',
+    justifyContent: 'space-between', 
   },
   cardWrapper: {
-    width: '48%',  // Set each card width to 48% of the container (for 2 cards per row)
-    marginBottom: 20,
+    width: '48%',
+    height: 180,
+    marginBottom: 50,
+    marginRight: '2%', 
   },
-  sportCard: {
+  teamCard: {
     backgroundColor: '#fff',
-    borderRadius: 10,  // Reduced border radius for a more square-like appearance
-    padding: 16,  // Adjusted padding for a cleaner appearance
+    borderRadius: 10,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },  // Increased shadow height for depth
-    shadowOpacity: 0.15,  // Subtle shadow
-    shadowRadius: 6,  // Reduced shadow radius for sharper corners
-    elevation: 6,  // Stronger shadow effect for a raised look
-    height: 200,
-  },
-  sportHeader: {
-    flexDirection: 'row',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
     alignItems: 'center',
+  },
+  teamLogo: {
+    width: 100,
+    height: 100,
     marginBottom: 10,
   },
-  icon: {
-    width: 30,  // Adjust the icon size if needed
-    height: 30,
-    borderRadius: 5,
-    marginRight: 8, // Space between the image and the text
-  },
-  sportSource: {
-    fontSize: 14,
-    color: '#666',
-  },
-  sportTitle: {
+  teamName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 10,
+    marginBottom: 5,
   },
-  sportDescription: {
+  teamNickname: {
     fontSize: 16,
     color: '#666',
-    lineHeight: 24,
-    marginBottom: 15,
+    marginBottom: 5,
   },
-  readMoreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#AF8F55',  // Updated color
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    alignSelf: 'flex-end',
-    justifyContent: 'flex-end',  // Move the icon to the right
+  teamLocation: {
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,
@@ -187,5 +198,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    width: '90%',
+    alignItems: 'center',
+  },
+  modalTeamLogo: {
+    width: 150,
+    height: 150,
+    marginBottom: 10,
+  },
+  modalTeamName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  modalTeamNickname: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 5,
+  },
+  modalTeamLocation: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  modalTeamColor: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 10,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#666',
+  },
+  colorPreview: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
 });

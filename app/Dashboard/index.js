@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
-  Image
+  ImageBackground,
 } from 'react-native';
 
 const Dashboard = () => {
@@ -13,13 +13,20 @@ const Dashboard = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerWrapper}>
+      <ImageBackground
+        source={require('../../assets/NFLteams.png')} 
+        style={styles.headerWrapper}
+        imageStyle={styles.backgroundImage} 
+      >
+
+        <View style={styles.overlay} />
         <View style={styles.headerContentRow}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>Welcome, {username}</Text>
+            <Text style={styles.headerText}>Your personal NFL team catalogue</Text>
           </View>
         </View>
-      </View>
+      </ImageBackground>
       <Sports />
     </View>
   );
@@ -30,15 +37,22 @@ export default Dashboard;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',  // Soft gray background
+    backgroundColor: '#f3f4f6', 
   },
   headerWrapper: {
-    backgroundColor: '#AF8F55',  // New background color applied
     paddingVertical: 50,
     paddingHorizontal: 30,
-    margin:20,
-    borderRadius:10,
+    margin: 20,
+    borderRadius: 10,
     alignItems: 'center',
+    overflow: 'hidden', 
+  },
+  backgroundImage: {
+    borderRadius: 10, 
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   headerContentRow: {
     flexDirection: 'row',
@@ -49,15 +63,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 32,  // Larger, bold title for presence
+    fontSize: 32, 
     fontWeight: 'bold',
     color: '#fff',
-    letterSpacing: 1,  // Elegance through letter spacing
+    letterSpacing: 1,
+    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#fff',
+  headerText: {
+    fontSize: 18, 
+    fontWeight: '800', 
+    color: '#fff', 
+    textAlign: 'center',
     marginTop: 10,
+    letterSpacing: 0.5, 
   },
 });

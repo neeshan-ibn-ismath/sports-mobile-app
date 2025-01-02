@@ -7,9 +7,6 @@ import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { useRouter } from 'expo-router';
 
 const validationSchema = Yup.object().shape({
-  username: Yup.string()
-    .required("Username is required")
-    .label("Username"),
   email: Yup.string()
     .required("Email is required")
     .email("Enter a valid email")
@@ -49,20 +46,12 @@ const Signup = () => {
         <View style={styles.formWrapper}>
           <Text style={styles.title}>Create an Account</Text>
           <Formik
-            initialValues={{ username: '', email: '', password: '', confirmPassword: '' }}
+            initialValues={{ email: '', password: '', confirmPassword: '' }}
             onSubmit={handleSignup}
             validationSchema={validationSchema}
           >
             {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
               <View style={styles.formContainer}>
-                <TextInput
-                  style={[styles.input, touched.username && errors.username && styles.inputError]}
-                  placeholder="Username"
-                  onChangeText={handleChange('username')}
-                  onBlur={handleBlur('username')}
-                  value={values.username}
-                />
-                {touched.username && errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
                 <TextInput
                   style={[styles.input, touched.email && errors.email && styles.inputError]}
